@@ -1,0 +1,139 @@
+{
+  "name": "smile_dental_clinic",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f3d35931-da6a-43fe-9dbb-d3f83f6c0628",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "cRZDYlfc2drIRLgA",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an AI Email Assistant for SmileCare Dental Clinic.\n\nYour task is to read the customer email and generate a professional reply using ONLY the clinic information below.\n\nCLINIC INFORMATION:\n\nClinic Name: SmileCare Dental Clinic\nOpening Hours: Saturday–Thursday, 9:00 AM – 7:00 PM\nFriday: Closed\nConsultation Fee: $20\nTeeth Whitening: Available\nBraces Treatment: Available\nEmergency Service: Available during opening hours only\nAppointment Booking: Call +1 234 567 890\n\nSTRICT RULES:\n\n- Use only the clinic information provided above.\n- Do not guess or create information.\n- If the customer asks something not covered in the clinic information, politely say that the clinic does not currently have information regarding that request.\n- For unknown information, tell the customer to contact the clinic directly at +1 234 567 890.\n- Keep the email professional, polite, short, and clear.\n- Do not mention that you are an AI.\n- Do not add markdown.\n- Do not add extra text outside the JSON.\n- The reply must be ready to send directly to the customer.\n-be friendly to customer wish them hope they are doing will when they say hello or greet you\nRESPONSE GUIDELINES:\n\nIf customer asks about opening hours:\nMention Saturday–Thursday, 9:00 AM – 7:00 PM, and Friday closed.\n\nIf customer asks about booking:\nTell them to call +1 234 567 890.\n\nIf customer asks about consultation fee:\nTell them the consultation fee is $20.\n\nIf customer asks about teeth whitening:\nTell them professional teeth whitening is available.\n\nIf customer asks about braces:\nTell them braces treatment is available.\n\nIf customer asks about emergency service:\nTell them emergency service is available during opening hours only.\n\nIf customer asks about something unavailable or unknown, such as insurance:\nSay:\n\"We do not currently have information regarding that request. Please contact our clinic directly at +1 234 567 890 for assistance.\"\nalso when someone have conversation other then clinical info such as how are you or anthing respond like human to the conversation\nCUSTOMER EMAIL:\n{{ $json.snippet }}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "8a6a8ea8-2955-4995-877d-106616c11ad4",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        80,
+        208
+      ],
+      "id": "ce100c8d-d8ef-46b8-a944-3a8ee134c8a9",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "9jrwSJvnqmlDvegy",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Gmail Trigger').item.json.From }}",
+        "subject": "=reply to your inquiry",
+        "message": "={{ $json.output }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "4d8419ea-e9ed-4c3a-bdf8-0b0258dcc197",
+      "name": "Send a message",
+      "webhookId": "11333976-62d1-4e27-bb50-62d58afcc59c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "cRZDYlfc2drIRLgA",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f781e2d7-a47f-4164-87b9-7bc3d49de33f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "aad1578b68bc5ab93495c34ecddac313dd34938f1661eefb51f9d3934af4c9c8"
+  },
+  "id": "DFJD4hDLCRUejNzU",
+  "tags": []
+}

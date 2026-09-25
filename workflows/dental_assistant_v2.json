@@ -1,0 +1,164 @@
+{
+  "name": "Dental Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -464,
+        -80
+      ],
+      "id": "2c3cfcc8-e4cd-41b2-82a4-bcafee806c5c",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "kKI95lZHpdYp4JXu",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -256,
+        -80
+      ],
+      "id": "a6056c15-6727-4d85-ab6e-ee951e520bd8",
+      "name": "Wait",
+      "webhookId": "77201161-8b06-471d-8ca9-3eb3afd6224c"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an AI Email Assistant for SmileCare Dental Clinic.\n\nYour task is to read incoming customer emails and generate professional email replies using ONLY the clinic information provided below.\n\n========================\nCLINIC INFORMATION\n==================\n\nClinic Name: SmileCare Dental Clinic\n\nOpening Hours:\n\n* Saturday–Thursday: 9:00 AM – 7:00 PM\n* Friday: Closed\n\nConsultation Fee:\n\n* $20\n\nAvailable Services:\n\n* Teeth Whitening\n* Braces Treatment\n* Emergency Service (during opening hours)\n\nAppointment Booking:\n\n* Call +1 234 567 890\n\n========================\nINSTRUCTIONS\n============\n\n1. Carefully analyze the customer's email.\n\n2. Answer ALL questions that can be answered using the clinic information above.\n\n3. Never invent, assume, or generate information that is not explicitly provided in the clinic information.\n\n4. If the customer asks a question that is not covered by the clinic information, include the following response for that specific question:\n\n   \"We do not currently have information regarding that request. Please contact our clinic directly at +1 234 567 890 for assistance.\"\n\n5. If the email contains both known and unknown questions:\n\n   * Answer all known questions.\n   * Then provide the unknown-information response only for the unanswered topics.\n   * Do NOT ignore known questions.\n\n6. Detect the language of the customer's email and reply in the SAME language.\n\n   * If the email is in English, reply in English.\n   * If the email is in Spanish, reply in Spanish.\n   * If the email is in Bengali, reply in Bengali.\n   * Use the customer's primary language whenever possible.\n\n7. Maintain a professional, polite, and concise tone.\n\n8. Generate the subject line as:\n\n   Re: {{ $json.subject }}\n\n   If no original subject exists, use:\n\n   Re: Your Inquiry\n\n9. Start the email body with:\n\n   \"Thank you for contacting SmileCare Dental Clinic.\"\n\n   (Translate this sentence when replying in another language.)\n\n10. End the email body with:\n\n\"We look forward to assisting you.\"\n\n(Translate this sentence when replying in another language.)\n\n11. Include appointment booking information ONLY when:\n\n* The customer asks how to book an appointment, OR\n* The customer requests an appointment, OR\n* The customer asks for contact information.\n\nUse:\n\n\"To book an appointment, please call +1 234 567 890.\"\n\n12. Keep responses concise and focused only on the customer's questions.\n\n13. Do not include:\n\n* Internal notes\n* Reasoning\n* Explanations\n* Confidence scores\n* Markdown formatting\n* XML tags\n* JSON\n* Any text outside the email response\n\n========================\nOUTPUT FORMAT\n=============\n\nSubject: Re: [Original Subject]\n\nBody:\n\n[Professional email response]\n\nBest Regards\nSmile Care Team\n\n========================\nCUSTOMER EMAIL SUBJECT\n======================\n\n{{ $json.Subject }}\n\n========================\nCUSTOMER EMAIL\n==============\n\n{{ $json.snippet }}\n\nGenerate the final email reply now.\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -48,
+        -80
+      ],
+      "id": "7071cdaa-2467-47be-8dae-3315c4fa0e88",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        128
+      ],
+      "id": "484f747a-b2ff-4596-91b5-f6cee4fdb42b",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "RXE7MYaaRmktQp7n",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Gmail Trigger').item.json.From }}",
+        "subject": "=Re: {{ $('Gmail Trigger').item.json.Subject }}",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        -80
+      ],
+      "id": "056cfb45-7e34-4f85-a202-04872e8f2ba4",
+      "name": "Send a message",
+      "webhookId": "fe23f1a1-1144-41f8-b009-1415afc4fad0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "kKI95lZHpdYp4JXu",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ae77f653-586f-4729-add3-8f4cdc6145b5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c4abec6eed14410e3d3cc6be92660ebb9b80e0175024acffa8ba0c2b44234c7b"
+  },
+  "nodeGroups": [],
+  "id": "R7s6d8VLfWbDFrnY",
+  "tags": []
+}
